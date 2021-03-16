@@ -27,18 +27,50 @@ function checksCreateTodosUserAvailability(request, response, next) {
   const { user } = request;
 
   if(user.todos.length >= 10 && user.pro === false) {
-    return response.status(400).json({error: "You can only have more than 10 todos if you are in the pro plan!"});
+    return response.status(403).json({error: "You can only have more than 10 todos if you are in the pro plan!"});
   }
 
   return next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find(user => user.username === username);
+
+  if(!user){
+    return response.status(404).json({error: "User does not exist!"});
+  }
+
+  if(!validate(id)){
+    return response.status(400).json({error: "Id does not exist!"});
+  } 
+  
+  const todo = user.todos.find(todo => todo.id === id);
+
+  if(!todo) {
+    return response.status(404).json({error: "Todo does not exist!"});
+  }
+  
+  request.todo = todo;
+  request.user = user;
+  
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userChosen = users.find(user => user.id === id);
+
+  if(!userChosen) {
+    return response.status(404).json({error: "User does not exist!"});
+  }
+
+  request.user = userChosen;
+  
+  return next();
 }
 
 app.post('/users', (request, response) => {
